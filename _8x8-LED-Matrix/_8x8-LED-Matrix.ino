@@ -11,7 +11,6 @@ int dataPin = 11;
 // This is for an 8x7seg display
 //byte nums[11] = {111,6,91,31,54,61,125,7,127,55,0};
 
-//byte image[8] = {66,66,66,66,66,90,102,66};
 
 byte letters[26][8] =  {{24,36,66,66,126,66,66,66},
                         {62,66,66,62,66,66,66,62},
@@ -41,6 +40,9 @@ byte letters[26][8] =  {{24,36,66,66,126,66,66,66},
                         {126,64,32,16,8,4,2,126}};
 
 
+char text[] = "HELLO WORLD";
+unsigned short disp[8] = {0,0,0,0,0,0,0,0};
+
 void setup() {
   //set pins to output so you can control the shift register
   Serial.begin(9600);
@@ -50,13 +52,27 @@ void setup() {
 }
 
 void loop() {
-  for (byte letter = 0; letter < 26; letter++){
-
-    for (int i = 0; i < 2048; i++){
-      writeToDisplay(1 << (i % 8), letters[letter][i % 8]);
-    }
-
+  for (int i = 0; i < 8; i++){
+    disp[i] &= 0x00FF;
   }
+  for (int i = 0; i < sizeof(text); i++){
+    for (int j = 0; j < 8; j++){
+      for (int k = 0; k < 128; k++){
+        writeToDisplay( 1 << (k % 8), (byte)(disp[k % 8] ) );
+      }
+      for (int k = 0; k < 8; k++){
+        disp[k] = disp[k] >> 1;
+      }
+    }
+    for (int j = 0; j < 8; j++){
+      if (32 != text[i]){
+        disp[j] |= (letters[text[i] - 65][j] << 8);
+      }else{
+        disp[j] &= 0x00FF;
+      }
+    }
+  }
+ 
 }
 
 void writeToDisplay(byte row, byte column){
